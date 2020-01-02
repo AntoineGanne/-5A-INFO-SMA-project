@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class Manager : MonoBehaviour
 {
-    public static Manager instance;
-
     public Board board;
+
+    public MailBox mailBox;
     
     public GameObject[] possibleGameObjects;
 
@@ -19,16 +19,11 @@ public class Manager : MonoBehaviour
 
    
     public Agent[] agents;
-    public int NbAgents=3;
-
-    void Awake()
-    {
-        instance = this;
-        
-    }
+    public int nbAgents=3;
 
     void Start()
     {
+        mailBox = new MailBox(nbAgents);
         availableFreeCells = new ArrayList(board.size * board.size);
         availableDestinationCells = new ArrayList(board.size * board.size);
         for(int x = 0; x < board.size; ++x)
@@ -51,9 +46,9 @@ public class Manager : MonoBehaviour
 
     private void InitialSetup()
     {
-        agents = new Agent[NbAgents];
+        agents = new Agent[nbAgents];
       
-        for (int i = 0; i < NbAgents; ++i)
+        for (int i = 0; i < nbAgents; ++i)
         {
             //agents[i]= Instantiate(getRandomGameObject())
        
@@ -64,7 +59,7 @@ public class Manager : MonoBehaviour
             Vector2Int destinationPos = findDestinationcell();
 
             Agent agent = agentObject.GetComponent<Agent>();
-            agent.Initialize(this, board,startPos, destinationPos);
+            agent.Initialize(i,this, board,startPos, destinationPos, this.mailBox);
             agents[i] = agent;
         }
 

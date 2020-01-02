@@ -28,6 +28,7 @@
  * THE SOFTWARE.
  */
 
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -91,59 +92,80 @@ public class Board : MonoBehaviour
         return targetPosition;
     }
 
-    public Vector2Int[] possibleMovesOfAgent(Agent agent)
+    // return cells adjacent to agent and not obstructed by an other agent
+    public List<Vector2Int> possibleMovesOfAgent(Agent agent)
+    {
+        List<Vector2Int> possibleCells = PossibleDirectionOfAgent(agent);
+        possibleCells.RemoveAll(cell =>
+        {
+            return occupedTiles[cell.x, cell.y] != null;
+        });
+
+        
+        return possibleCells;
+    }
+
+    // return cells adjacent to agent
+    public List<Vector2Int> PossibleDirectionOfAgent(Agent agent)
     {
         List<Vector2Int> possibleCells = new List<Vector2Int>();
         Vector2Int pos = agent.actualPos;
         possibleCells.Add(pos);
+        possibleCells.AddRange(AdjacentCells(agent.actualPos));
+        return possibleCells;
+    }
 
-        for(int i = -1; i <= 1; i += 2)
+    public Agent isCellOccupied(Vector2Int cell)
+    {
+        return occupedTiles[cell.x, cell.y];
+    }
+
+    public List<Vector2Int>  AdjacentCells(Vector2Int cell)
+    {
+        List<Vector2Int> possibleCells = new List<Vector2Int>();
+       
+        for (int i = -1; i <= 1; i += 2)
         {
-            int x = pos.x + i;
-            int y = pos.y;
+            int x = cell.x + i;
+            int y = cell.y;
             if (x >= 0 && x < size && y >= 0 && y < size) // check for overbound
             {
-                if (occupedTiles[x, y] == null)
-                {
-                    possibleCells.Add(new Vector2Int(x, y));
-                }
+                possibleCells.Add(new Vector2Int(x, y));
             }
         }
 
         for (int i = -1; i <= 1; i += 2)
         {
-            int x = pos.x;
-            int y = pos.y+i;
+            int x = cell.x;
+            int y = cell.y + i;
             if (x >= 0 && x < size && y >= 0 && y < size) // check for overbound
             {
-                if (occupedTiles[x, y] == null)
-                {
-                    possibleCells.Add(new Vector2Int(x, y));
-                }
+                possibleCells.Add(new Vector2Int(x, y));
+            }
+        }
+        return possibleCells;
+    }
+
+    public Agent getAnAdjacentAgent(Agent agent)
+    {
+        List<Vector2Int> adjacentCells =AdjacentCells(agent.actualPos);
+        foreach(Vector2Int cell in adjacentCells)
+        {
+            if (occupedTiles[cell.x, cell.y] != null)
+            {
+                return occupedTiles[cell.x, cell.y];
             }
         }
 
-        return possibleCells.ToArray();
+        return null;
     }
-
+        
     public void FreeCell(Vector2Int cell)
     {
         occupedTiles[cell.x, cell.y] = null;
     }
 
-    //public void PlaceAgentOnFreeCell(Agent agent)
-    //{
-    //    int x, y;
-    //    do
-    //    {
-    //        x = Random.Range(0, size);
-    //        y = Random.Range(0, size);
-    //    } while (occupedTiles[x, y] != null);
-    //    occupedTiles[x, y] = agent;
-    //    Vector2Int position = new Vector2Int(x, y);
-    //    agent.actualPos = position;
-    //    agent.transform.position = CoordToWorld(x, y);
-    //}
+   
 
     public Vector3 CoordToWorld(int x,int y)
     {
@@ -151,25 +173,19 @@ public class Board : MonoBehaviour
         return grid.CellToWorld(cellVector);
     }
     
-
-    //public GameObject AddPiece(GameObject piece, int col, int row)
-    //{
-    //    Vector2Int gridPoint = Geometry.GridPoint(col, row);
-    //    GameObject newPiece = Instantiate(piece, Geometry.PointFromGrid(gridPoint),
-    //        Quaternion.identity, gameObject.transform);
-    //    return newPiece;
-    //}
-
+    
     public void placeAgentOnCreation(Agent agent)
     {
         Vector2Int pos = agent.actualPos;
         occupedTiles[pos.x, pos.y] = agent;
     } 
 
-    public void RemovePiece(GameObject piece)
-    {
-        Destroy(piece);
-    }
+    
+
+    //public Dictionary<Vector2Int,int> updateValueOfPossibleMoves(Agent agent, Dictionary<Vector2Int, int> valueOfPossibleMoves)
+    //{
+
+    //}
 
     
 }

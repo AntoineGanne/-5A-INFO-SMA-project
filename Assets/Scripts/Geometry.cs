@@ -30,8 +30,10 @@
 
 using UnityEngine;
 
+
 public class Geometry
 {
+
     static public Vector3 PointFromGrid(Vector2Int gridPoint)
     {
         float x = gridPoint.x;
@@ -100,6 +102,7 @@ public class Geometry
         }
         return closestCell;
     }
+    
 
     static public int distanceBetweenCells(Vector2Int cellA, Vector2Int cellB)
     {
