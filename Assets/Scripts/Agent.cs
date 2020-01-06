@@ -7,17 +7,20 @@ public class Agent : MonoBehaviour
 {
     public int id;
 
-    private Piece[] otherAgents;
+    // environment
+    private readonly Agent[] otherAgents;
     public Board board;
-    public Vector2Int actualPos=new Vector2Int(0,0);
-    public Vector2Int desiredPos = new Vector2Int(0, 0);
-
-    //private int[,] attractivityOfCells;
 
     private Manager manager;
     private MailBox mailBox;
 
+    //
+    public Vector2Int actualPos=new Vector2Int(0,0);
+    public Vector2Int desiredPos = new Vector2Int(0, 0);
 
+    //private int[,] attractivityOfCells;
+    
+    // movement parameters
     public float speed=0.6f;
     private float  percentTraveled;
     private bool moving = false;
@@ -25,14 +28,16 @@ public class Agent : MonoBehaviour
     private Vector2Int endCell;
     private Vector3 endVector;
 
+    // messages
     private bool isOrderedToMove; // agent received an order to move?
 
+    // unused
     const int STAY = 0;
     const int UP = 1;
     const int RIGHT = 2;
     const int DOWN = 3;
     const int LEFT = 4;
-    int[] valueOfDirections = new int[5];
+    readonly int[] valueOfDirections = new int[5];
 
     public void Initialize(int id,Manager parentManager, Board boardInput,Vector2Int startPosition, Vector2Int destinationCell, MailBox mail)
     {
@@ -44,7 +49,7 @@ public class Agent : MonoBehaviour
         this.transform.position = board.CoordToWorld(actualPos.x, actualPos.y);
         desiredPos = destinationCell;
 
-        board.placeAgentOnCreation(this);
+        board.PlaceAgentOnCreation(this);
     }
 
     
@@ -58,7 +63,7 @@ public class Agent : MonoBehaviour
     // set up movement to cell
     private void Move(Vector2Int cell)
     {
-        if (board.isCellOccupied(cell)!=null)
+        if (board.IsCellOccupied(cell)!=null)
         {
             Debug.Log("Error: trying to move to occupied cell "+cell +" by Agent n"+id);
             return;
@@ -74,13 +79,12 @@ public class Agent : MonoBehaviour
         this.transform.position = Geometry.PointFromGrid(this.actualPos); 
     }
 
+    // select the adjacent cell closest to desired position
     private void BasicMoveTowardsDesiredPosition()
     {
         this.percentTraveled = 0;
-        //this.endCell = Geometry.adjacentCellTowardsGoalCell(actualPos,desiredPos);
-        Vector2Int[] poolOfMoves=board.possibleMovesOfAgent(this).ToArray();
-        this.endCell = Geometry.closestCellToGoalCell(poolOfMoves, desiredPos);
-        //Debug.Log(this.endCell.x+" " + this.endCell.y);
+        Vector2Int[] poolOfMoves=board.PossibleMovesOfAgent(this).ToArray();
+        this.endCell = Geometry.ClosestCellToGoalCell(poolOfMoves, desiredPos);
         this.endVector = board.AgentMoveTo(this, endCell);
         this.startVector = this.transform.position;
         this.moving = true;
@@ -94,7 +98,7 @@ public class Agent : MonoBehaviour
         isOrderedToMove = agentsOrderingToMove.Count>=1;
 
 
-        List<Vector2Int> poolOfMoves = board.possibleMovesOfAgent(this);
+        List<Vector2Int> poolOfMoves = board.PossibleMovesOfAgent(this);
         if (actualPos == desiredPos)
         {
             // case when no movement is required
@@ -103,7 +107,7 @@ public class Agent : MonoBehaviour
             poolOfMoves.Remove(actualPos);
             if (poolOfMoves.Count == 0) // no adjacent cell to move to
             {
-                Agent adjacentAgent = board.getAnAdjacentAgent(this);
+                Agent adjacentAgent = board.GetAnAdjacentAgent(this);
                 if (adjacentAgent != null)
                 {
                     Message moveOrder = new MoveOrder(this, adjacentAgent);
@@ -126,22 +130,11 @@ public class Agent : MonoBehaviour
         if (isOrderedToMove)
         {
             poolOfMoves.Remove(actualPos);
-            //if (poolOfMoves.Count == 0)
-            //{
-            //    Agent adjacentAgent = board.getAnAdjacentAgent(this);
-            //    if (adjacentAgent != null)
-            //    {
-            //        Message moveOrder = new MoveOrder(this, adjacentAgent);
-            //        mailBox.post(moveOrder);
-            //    }
-            //    return;
-            //}
-            
         }
         if (poolOfMoves.Count == 0) return;
-        Vector2Int selectedMove = Geometry.closestCellToGoalCell(poolOfMoves.ToArray(), desiredPos);
+        Vector2Int selectedMove = Geometry.ClosestCellToGoalCell(poolOfMoves.ToArray(), desiredPos);
         if (selectedMove == actualPos) return;
-        Agent possibleObstructingAgent = board.isCellOccupied(selectedMove);
+        Agent possibleObstructingAgent = board.IsCellOccupied(selectedMove);
         if (possibleObstructingAgent != null)
         {
             if (Random.Range(0f,1f)<0.3)
@@ -192,11 +185,7 @@ public class Agent : MonoBehaviour
             //}
             MovementDecisionWithMessages();
         }
-        //this.transform.Translate(new Vector3(1, 1, 1));
     }
 
-    public void DebugAgent()
-    {
-        Debug.Log("yoooo");
-    }
+    
 }

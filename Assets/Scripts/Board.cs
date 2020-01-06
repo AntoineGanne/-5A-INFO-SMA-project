@@ -41,20 +41,20 @@ public class Board : MonoBehaviour
 
     public int size = 8;
 
-    private Agent[,] occupedTiles;   // null value if the cell is not occuped. Otherwise it's the reference to the agent at thiss place.
+    private readonly Agent[,] occupedTiles;   // null value if the cell is not occuped. Otherwise it's the reference to the agent at thiss place.
 
-    public GameObject tile;
+    public GameObject[,] tiles;
     
 
     public Board()
     {
         occupedTiles = new Agent[size, size];
-        
+        tiles = new GameObject[size,size]; 
     }
 
     private void Awake()
     {
-
+        // makes the tiled floor
         for (int x = 0; x < size; ++x)
         {
             for (int y = 0; y < size; ++y)
@@ -69,8 +69,7 @@ public class Board : MonoBehaviour
                 cube.transform.localScale = new Vector3(1f, 0.05f, 1f);
                 cube.GetComponent<Renderer>().material.color = colorOfTile;
 
-                //GameObject newPiece = Instantiate(tile, grid.CellToWorld(cellVector),
-                //    Quaternion.identity, gameObject.transform);
+                tiles[x, y] = cube;
             }
         }
     }
@@ -78,9 +77,25 @@ public class Board : MonoBehaviour
     // return the destination vector for the agent. change occupation status of occupedTiles
     public Vector3 AgentMoveTo(Agent movingAgent,Vector2Int destinationCell)
     {
-        Vector3 targetPosition = grid.CellToWorld(Geometry.cell2DTo3D(destinationCell));
+        Vector3 targetPosition = grid.CellToWorld(Geometry.Cell2DTo3D(destinationCell));
         if (destinationCell != movingAgent.actualPos)
         {
+            if (destinationCell == movingAgent.desiredPos)
+            {
+                int x = destinationCell.x;
+                int y = destinationCell.y;
+                Color color = (x + y) % 2 == 0 ? Color.cyan : Color.green;
+                tiles[x, y].GetComponent<Renderer>().material.color = color;
+            }
+            if (movingAgent.actualPos == movingAgent.desiredPos)
+            {
+                int x = movingAgent.actualPos.x;
+                int y = movingAgent.actualPos.y;
+                Color color = (x + y) % 2 == 0 ? Color.white : Color.black;
+                tiles[x,y].GetComponent<Renderer>().material.color = color;
+            }
+
+
             if (occupedTiles[destinationCell.x, destinationCell.y] != null)
             {
                 Debug.Log(destinationCell + " : " + occupedTiles[destinationCell.x, destinationCell.y]);
@@ -93,7 +108,7 @@ public class Board : MonoBehaviour
     }
 
     // return cells adjacent to agent and not obstructed by an other agent
-    public List<Vector2Int> possibleMovesOfAgent(Agent agent)
+    public List<Vector2Int> PossibleMovesOfAgent(Agent agent)
     {
         List<Vector2Int> possibleCells = PossibleDirectionOfAgent(agent);
         possibleCells.RemoveAll(cell =>
@@ -115,7 +130,7 @@ public class Board : MonoBehaviour
         return possibleCells;
     }
 
-    public Agent isCellOccupied(Vector2Int cell)
+    public Agent IsCellOccupied(Vector2Int cell)
     {
         return occupedTiles[cell.x, cell.y];
     }
@@ -146,7 +161,7 @@ public class Board : MonoBehaviour
         return possibleCells;
     }
 
-    public Agent getAnAdjacentAgent(Agent agent)
+    public Agent GetAnAdjacentAgent(Agent agent)
     {
         List<Vector2Int> adjacentCells =AdjacentCells(agent.actualPos);
         foreach(Vector2Int cell in adjacentCells)
@@ -169,16 +184,31 @@ public class Board : MonoBehaviour
 
     public Vector3 CoordToWorld(int x,int y)
     {
-        Vector3Int cellVector = Geometry.cell2DTo3D(x, y);
+        Vector3Int cellVector = Geometry.Cell2DTo3D(x, y);
         return grid.CellToWorld(cellVector);
     }
     
     
-    public void placeAgentOnCreation(Agent agent)
+    public void PlaceAgentOnCreation(Agent agent)
     {
         Vector2Int pos = agent.actualPos;
         occupedTiles[pos.x, pos.y] = agent;
     } 
+
+    public void greenlightTilesOfCorrectlyPlacedAgents()
+    {
+        for (int x = 0; x < size; ++x)
+        {
+            for (int y = 0; y < size; ++y)
+            {
+                if (occupedTiles[x, y] != null) //agent there
+                {
+                    Agent agent = occupedTiles[x, y];
+                    //TODO: 
+                }
+            }
+        }
+    }
 
     
 

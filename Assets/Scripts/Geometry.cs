@@ -48,20 +48,11 @@ public class Geometry
         return new Vector2Int(x, y);
     }
 
-    static public Vector2Int GridPoint(int col, int row)
-    {
-        return new Vector2Int(col, row);
-    }
+    static public Vector2Int GridPoint(int col, int row) => new Vector2Int(col, row);
 
-    static public Vector3Int cell2DTo3D(Vector2Int gridPoint)
-    {
-        return new Vector3Int(gridPoint.x, gridPoint.y, 0);
-    }
+    static public Vector3Int Cell2DTo3D(Vector2Int gridPoint) => new Vector3Int(gridPoint.x, gridPoint.y, 0);
 
-    static public Vector3Int cell2DTo3D(int row, int col)
-    {
-        return new Vector3Int(row, col, 0);
-    }
+    static public Vector3Int Cell2DTo3D(int row, int col) => new Vector3Int(row, col, 0);
 
     static public Vector2Int GridFromPoint(Vector3 point)
     {
@@ -70,7 +61,7 @@ public class Geometry
         return new Vector2Int(col, row);
     }
 
-    static public Vector2Int adjacentCellTowardsGoalCell(Vector2Int startCell, Vector2Int goalCell)
+    static public Vector2Int AdjacentCellTowardsGoalCell(Vector2Int startCell, Vector2Int goalCell)
     {
         if (startCell == goalCell) return new Vector2Int(0, 0);
         Vector2Int difference = goalCell - startCell;
@@ -86,14 +77,14 @@ public class Geometry
         }
     }
 
-    static public Vector2Int closestCellToGoalCell(Vector2Int[] poolOfCells, Vector2Int goalCell)
+    static public Vector2Int ClosestCellToGoalCell(Vector2Int[] poolOfCells, Vector2Int goalCell)
     {
         Vector2Int closestCell = poolOfCells[0];
-        int closestDistance = distanceBetweenCells(closestCell, goalCell);
+        int closestDistance = DistanceBetweenCells(closestCell, goalCell);
         for(int i = 1; i < poolOfCells.Length; i++)
         {
             Vector2Int cell = poolOfCells[i];
-            int distance = distanceBetweenCells(cell, goalCell);
+            int distance = DistanceBetweenCells(cell, goalCell);
             if(distance<closestDistance)
             {
                 closestCell = cell;
@@ -104,7 +95,7 @@ public class Geometry
     }
     
 
-    static public int distanceBetweenCells(Vector2Int cellA, Vector2Int cellB)
+    static public int DistanceBetweenCells(Vector2Int cellA, Vector2Int cellB)
     {
         Vector2Int difference = cellA - cellB;
         return Mathf.Abs(difference.x) + Mathf.Abs(difference.y);

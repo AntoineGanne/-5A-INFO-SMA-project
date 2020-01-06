@@ -38,7 +38,7 @@ public class Manager : MonoBehaviour
         InitialSetup();
     }
 
-    private GameObject getRandomGameObject()
+    private GameObject GetRandomGameObject()
     {
         int randomIndex = Random.Range(0, possibleGameObjects.Length);
         return possibleGameObjects[randomIndex];
@@ -52,11 +52,11 @@ public class Manager : MonoBehaviour
         {
             //agents[i]= Instantiate(getRandomGameObject())
        
-            GameObject agentObject = Instantiate(getRandomGameObject());
+            GameObject agentObject = Instantiate(GetRandomGameObject());
             agentObject.AddComponent(typeof(Agent));
 
-            Vector2Int startPos = findFreeCell();
-            Vector2Int destinationPos = findDestinationcell();
+            Vector2Int startPos = FindFreeCell();
+            Vector2Int destinationPos = FindDestinationcell();
 
             Agent agent = agentObject.GetComponent<Agent>();
             agent.Initialize(i,this, board,startPos, destinationPos, this.mailBox);
@@ -70,7 +70,7 @@ public class Manager : MonoBehaviour
      *  remove the vector from arraylist.
      *  Return: randomly selected vector
      **/
-    private Vector2Int findFreeCell()
+    private Vector2Int FindFreeCell()
     {
         int randomIndex = Random.Range(0, availableFreeCells.Count);
         int? cell = availableFreeCells[randomIndex] as int?;
@@ -91,7 +91,7 @@ public class Manager : MonoBehaviour
      *  remove the vector from arraylist.
      *  Return: randomly selected vector
      **/
-    private Vector2Int findDestinationcell()
+    private Vector2Int FindDestinationcell()
     {
         int randomIndex = Random.Range(0, availableDestinationCells.Count);
         int? cell = availableDestinationCells[randomIndex] as int?;
@@ -107,10 +107,4 @@ public class Manager : MonoBehaviour
         }
     }
 
-
-
-    public void AddPiece(GameObject prefab, int col, int row)
-    {
-       
-    }
 }
