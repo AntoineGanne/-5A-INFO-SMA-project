@@ -103,7 +103,7 @@ public class Geometry
         {
             Vector2Int cell = poolOfCells[i];
             int distance = DistanceBetweenCells(cell, goalCell);
-            if (distance <= actualDistance)
+            if (distance <= actualDistance+1)
             {
                 result.Add(cell);
             }
@@ -115,7 +115,8 @@ public class Geometry
     static public int DistanceBetweenCells(Vector2Int cellA, Vector2Int cellB)
     {
         Vector2Int difference = cellA - cellB;
-        return Mathf.Abs(difference.x) + Mathf.Abs(difference.y);
+        //return Mathf.Abs(difference.x) + Mathf.Abs(difference.y);
+        return difference.x*difference.x + difference.y*difference.y;
     }
 }
 

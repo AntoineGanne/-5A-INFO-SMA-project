@@ -26,21 +26,50 @@ public class MailBox
     /** return list of agents requiring current agent to move
      * 
      * */
-    public List<Agent> ReadMessages(int idAgent)
+    public List<Agent> ReadMoveOrders(int idAgent)
     {
         List<Agent> agentsOrderingAMove = new List<Agent>();
         List<Message> messages = mailbox[idAgent];
+        List<Message> messagesRead = new List<Message>();
 
         foreach(Message message in messages)
         {
-            agentsOrderingAMove.Add(message.emitter);
-
+            if(message is MoveOrder)
+            {
+                agentsOrderingAMove.Add(message.emitter);
+                messagesRead.Add(message);
+            }
         }
-
-        if (messages.Count >= 1)
+        foreach(Message msg in messagesRead)
         {
-            messages.Clear();
+            messages.Remove(msg);
         }
+
+        //if (messages.Count >= 1)
+        //{
+        //    messages.Clear();
+        //}
         return agentsOrderingAMove;
+    }
+
+    public bool readRepliesToMoveOrder(int idAgent)
+    {
+        List<Message> messages = mailbox[idAgent];
+        List<Message> messagesRead = new List<Message>();
+        bool hadAReply = false;
+
+        foreach (Message message in messages)
+        {
+            if (message is ReplyToMoveOrder)
+            {
+                messagesRead.Add(message);
+                hadAReply = true;
+            }
+        }
+        foreach (Message msg in messagesRead)
+        {
+            messages.Remove(msg);
+        }
+        return hadAReply;
     }
 }

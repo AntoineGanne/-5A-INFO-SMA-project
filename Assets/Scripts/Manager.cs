@@ -23,6 +23,8 @@ public class Manager : MonoBehaviour
 
     public bool generateNewGameOnEnd=false;
 
+    public int numberOfTranspositionsOnSetup=500;
+
     void Start()
     {
         Initialise();
@@ -63,12 +65,21 @@ public class Manager : MonoBehaviour
             GameObject agentObject = Instantiate(GetRandomGameObject());
             agentObject.AddComponent(typeof(Agent));
 
-            Vector2Int startPos = FindFreeCell();
+            //Vector2Int startPos = FindFreeCell();
             Vector2Int destinationPos = FindDestinationcell();
 
             Agent agent = agentObject.GetComponent<Agent>();
-            agent.Initialize(i,this, board,startPos, destinationPos, this.mailBox);
+            agent.Initialize(i,this, board,destinationPos, destinationPos, this.mailBox);
             agents[i] = agent;
+        }
+        ShuffleAgents();
+       foreach(Agent agent in agents)
+        {
+            agent.SetupPositionOfAgent();
+        }
+        foreach (Agent agent in agents)
+        {
+            agent.AllowMovement();
         }
 
     }
@@ -91,6 +102,16 @@ public class Manager : MonoBehaviour
         {
             Debug.Log("error: getting null value from arraylist avalaibleFreeCell");
             return new Vector2Int(0, 0);
+        }
+    }
+
+    private void ShuffleAgents()
+    {
+        for(int i = 0; i < numberOfTranspositionsOnSetup; ++i)
+        {
+            int rdmIndexAgent = Random.Range(0, agents.Length);
+            Agent agent = agents[rdmIndexAgent];
+            board.BasicPermutation(agent);
         }
     }
 

@@ -512,8 +512,9 @@ MonoBehaviour:
   - {fileID: 1097184490271986, guid: 286f8291ea775409f91f3dcc8dc0e06c, type: 3}
   - {fileID: 1486526489832934, guid: 3768577674528430691fecf5a4660eb2, type: 3}
   agents: []
-  nbAgents: 12
+  nbAgents: 18
   generateNewGameOnEnd: 0
+  numberOfTranspositionsOnSetup: 250
 --- !u!4 &1843290168
 Transform:
   m_ObjectHideFlags: 0

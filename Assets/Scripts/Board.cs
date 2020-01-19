@@ -76,7 +76,6 @@ public class Board : MonoBehaviour
     // return the destination vector for the agent. change occupation status of occupedTiles
     public Vector3 AgentMoveTo(Agent movingAgent,Vector2Int destinationCell)
     {
-        Vector3 targetPosition = grid.CellToWorld(Geometry.Cell2DTo3D(destinationCell));
         if (destinationCell != movingAgent.actualPos)
         {
             ChangeColorOfTile(destinationCell, movingAgent);
@@ -88,13 +87,29 @@ public class Board : MonoBehaviour
             FreeCell(movingAgent.actualPos);
             occupedTiles[destinationCell.x, destinationCell.y] = movingAgent;
         }
-        
+
+        Vector3 targetPosition = grid.CellToWorld(Geometry.Cell2DTo3D(destinationCell));
         return targetPosition;
+    }
+
+    public void BasicPermutation(Agent agent)
+    {
+        
+        List<Vector2Int> possiblesMoves = PossibleMovesOfAgent(agent);
+        if (possiblesMoves.Count > 0)
+        {
+            Vector2Int rdmMove = possiblesMoves[Random.Range(0, possiblesMoves.Count)];
+            FreeCell(agent.actualPos);
+            occupedTiles[rdmMove.x, rdmMove.y] = agent;
+            agent.actualPos = rdmMove;
+            
+        }
     }
 
    
 
     // return cells adjacent to agent and not obstructed by an other agent
+    // does not include actual pos of agent
     public List<Vector2Int> PossibleMovesOfAgent(Agent agent)
     {
         List<Vector2Int> possibleCells = PossibleDirectionOfAgent(agent);
@@ -116,11 +131,7 @@ public class Board : MonoBehaviour
         possibleCells.AddRange(AdjacentCells(agent.actualPos));
         return possibleCells;
     }
-
-    public Agent IsCellOccupied(Vector2Int cell)
-    {
-        return occupedTiles[cell.x, cell.y];
-    }
+    
 
     public List<Vector2Int>  AdjacentCells(Vector2Int cell)
     {
@@ -146,6 +157,11 @@ public class Board : MonoBehaviour
             }
         }
         return possibleCells;
+    }
+
+    public Agent IsCellOccupied(Vector2Int cell)
+    {
+        return occupedTiles[cell.x, cell.y];
     }
 
     public Agent GetAnAdjacentAgent(Agent agent)
@@ -174,12 +190,17 @@ public class Board : MonoBehaviour
         Vector3Int cellVector = Geometry.Cell2DTo3D(x, y);
         return grid.CellToWorld(cellVector);
     }
-    
-    
-    public void PlaceAgentOnCreation(Agent agent)
+
+    public void BasicPlaceAgent(Agent agent)
     {
         Vector2Int pos = agent.actualPos;
         occupedTiles[pos.x, pos.y] = agent;
+    } 
+
+    
+    public void PlaceAgentOnCreation(Agent agent)
+    {
+        BasicPlaceAgent(agent);
         if (agent.actualPos == agent.desiredPos)
         {
             int x = agent.actualPos.x;
@@ -212,7 +233,7 @@ public class Board : MonoBehaviour
         {
             int x = destinationCell.x;
             int y = destinationCell.y;
-            Color color = new Color(0,0,0.9f);
+            Color color = new Color(0, 0.9f,0);
             if ((x + y) % 2 == 0) color.b += 0.3f;
             tiles[x, y].GetComponent<Renderer>().material.color = color;
         }

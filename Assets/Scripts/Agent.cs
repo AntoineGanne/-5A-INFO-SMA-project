@@ -6,6 +6,7 @@ using UnityEngine;
 public class Agent : MonoBehaviour
 {
     public int id;
+    private bool started=false;
 
     // environment
     private readonly Agent[] otherAgents;
@@ -21,7 +22,7 @@ public class Agent : MonoBehaviour
     //private int[,] attractivityOfCells;
     
     // movement parameters
-    public float speed=0.6f;
+    public float speed=0.8f;
     private float  percentTraveled;
     private bool moving = false;
     private Vector3 startVector;
@@ -50,11 +51,11 @@ public class Agent : MonoBehaviour
         this.mailBox = mail;
         this.actualPos = startPosition;
         this.transform.position = board.CoordToWorld(actualPos.x, actualPos.y);
-        desiredPos = destinationCell;
-        this.nbMoveOrderToAgents = new int[manager.nbAgents]; 
+        this.desiredPos = destinationCell;
+        this.nbMoveOrderToAgents = new int[manager.nbAgents];
 
 
-        board.PlaceAgentOnCreation(this);
+        board.BasicPlaceAgent(this);
     }
 
     
@@ -63,6 +64,18 @@ public class Agent : MonoBehaviour
     void Start()
     {
         this.transform.position = Geometry.PointFromGrid(this.actualPos);
+    }
+
+    public void SetupPositionOfAgent()
+    {
+        this.transform.position = board.CoordToWorld(actualPos.x, actualPos.y);
+        board.PlaceAgentOnCreation(this);
+    }
+
+    // allow the agent to move and make sure actual pos is ok
+    public void AllowMovement()
+    {
+        started = true;
     }
 
     // set up movement to cell
@@ -79,9 +92,10 @@ public class Agent : MonoBehaviour
         this.endVector = board.AgentMoveTo(this, cell);
         this.startVector = this.transform.position;
         this.moving = true;
-
+      
         // just to put the object back in place if something moved it
-        this.transform.position = Geometry.PointFromGrid(this.actualPos); 
+        this.transform.position = Geometry.PointFromGrid(this.actualPos);
+        this.actualPos = cell;
     }
 
     // select the adjacent cell closest to desired position
@@ -99,11 +113,9 @@ public class Agent : MonoBehaviour
 
     private void MovementDecisionWithMessages()
     {
-        List<Agent> agentsOrderingToMove = mailBox.ReadMessages(id);
+        List<Agent> agentsOrderingToMove = mailBox.ReadMoveOrders(id);
         isOrderedToMove = agentsOrderingToMove.Count>=1;
         
-
-
         List<Vector2Int> poolOfMoves = board.PossibleMovesOfAgent(this);
         if (actualPos == desiredPos)
         {
@@ -188,13 +200,15 @@ public class Agent : MonoBehaviour
     {
         foreach(Agent agent in agentWhoHaveOrderedMeToMove)
         {
-            agent.OnReplyToMoveOrder();
+            Message reply = new ReplyToMoveOrder(this, agent);
+            mailBox.post(reply);
         }
     }
 
-    public void OnReplyToMoveOrder()
+    public void readRepliesToMoveOrder()
     {
-        waitingForAnAgentToMove = false;
+        waitingForAnAgentToMove = mailBox.readRepliesToMoveOrder(this.id);
+
     }
 
     private void EmitMoveOrder(Agent recipient)
@@ -233,6 +247,7 @@ public class Agent : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!started) return;
         if (moving)
         {
             this.percentTraveled = percentTraveled+speed*Time.deltaTime;
@@ -245,6 +260,10 @@ public class Agent : MonoBehaviour
         }
         else
         {
+            if (waitingForAnAgentToMove)
+            {
+                readRepliesToMoveOrder();
+            }
             if (waitingForAnAgentToMove) return;
             //if (this.actualPos != this.desiredPos)
             //{
