@@ -30,6 +30,9 @@ public class Agent : MonoBehaviour
 
     // messages
     private bool isOrderedToMove; // agent received an order to move?
+    public int[] nbMoveOrderToAgents;
+    public int maxMoveOrdersTogAgent=80;
+    public bool waitingForAnAgentToMove=false; //wait once you emitted a move order
 
     // unused
     const int STAY = 0;
@@ -48,6 +51,8 @@ public class Agent : MonoBehaviour
         this.actualPos = startPosition;
         this.transform.position = board.CoordToWorld(actualPos.x, actualPos.y);
         desiredPos = destinationCell;
+        this.nbMoveOrderToAgents = new int[manager.nbAgents]; 
+
 
         board.PlaceAgentOnCreation(this);
     }
@@ -96,6 +101,7 @@ public class Agent : MonoBehaviour
     {
         List<Agent> agentsOrderingToMove = mailBox.ReadMessages(id);
         isOrderedToMove = agentsOrderingToMove.Count>=1;
+        
 
 
         List<Vector2Int> poolOfMoves = board.PossibleMovesOfAgent(this);
@@ -110,14 +116,14 @@ public class Agent : MonoBehaviour
                 Agent adjacentAgent = board.GetAnAdjacentAgent(this);
                 if (adjacentAgent != null)
                 {
-                    Message moveOrder = new MoveOrder(this, adjacentAgent);
-                    mailBox.post(moveOrder);
+                    EmitMoveOrder(adjacentAgent);
                 }
             }
             else
             {
-                Move(poolOfMoves[0]);
-
+                int rdmIndex = Random.Range(0, poolOfMoves.Count);
+                Move(poolOfMoves[rdmIndex]);
+                SignalToAgentsWhoOrderedMeToMove(agentsOrderingToMove);
             }
             return;
         }
@@ -132,22 +138,83 @@ public class Agent : MonoBehaviour
             poolOfMoves.Remove(actualPos);
         }
         if (poolOfMoves.Count == 0) return;
-        Vector2Int selectedMove = Geometry.ClosestCellToGoalCell(poolOfMoves.ToArray(), desiredPos);
-        if (selectedMove == actualPos) return;
-        Agent possibleObstructingAgent = board.IsCellOccupied(selectedMove);
-        if (possibleObstructingAgent != null)
+        //Vector2Int selectedMove = Geometry.ClosestCellToGoalCell(poolOfMoves.ToArray(), desiredPos);
+        List<Vector2Int> goodEnoughMoves = Geometry.CloserCellsToGoalCell(poolOfMoves.ToArray(), desiredPos, this.actualPos);
+        Vector2Int freeCell= new Vector2Int(0,0);
+        bool haveFoundFreeCell = false;
+        foreach(Vector2Int move in goodEnoughMoves)
         {
-            if (Random.Range(0f,1f)<0.3)
+            if (!board.IsCellOccupied(move))
             {
-                Message moveOrder = new MoveOrder(this, possibleObstructingAgent);
-                mailBox.post(moveOrder);
+                freeCell = move;
+                haveFoundFreeCell = true;
+                break;
             }
+        }
+        
+        
+        if (haveFoundFreeCell)
+        {
+            if (freeCell == actualPos) return;
+            Move(freeCell);
+            SignalToAgentsWhoOrderedMeToMove(agentsOrderingToMove);
         }
         else
         {
-            Move(selectedMove);
+            if (goodEnoughMoves.Count == 0)
+            {
+                Debug.Log("What");
+                List<Vector2Int> poolOfMoves2 = board.AdjacentCells(actualPos);
+                Vector2Int rdmCell = poolOfMoves2[Random.Range(0, poolOfMoves.Count)];
+                if (board.IsCellOccupied(rdmCell)) EmitMoveOrder(rdmCell);
+                else {
+                    Move(rdmCell);
+                    SignalToAgentsWhoOrderedMeToMove(agentsOrderingToMove);
+                }
+                return;
+            }
+            Vector2Int aGoodEnoughMove = goodEnoughMoves[Random.Range(0, goodEnoughMoves.Count)];
+            Agent possibleObstructingAgent = board.IsCellOccupied(aGoodEnoughMove);
+            if (possibleObstructingAgent != null)
+            {
+                EmitMoveOrder(possibleObstructingAgent);
+            }
         }
+       
 
+    }
+
+    private void SignalToAgentsWhoOrderedMeToMove(List<Agent> agentWhoHaveOrderedMeToMove)
+    {
+        foreach(Agent agent in agentWhoHaveOrderedMeToMove)
+        {
+            agent.OnReplyToMoveOrder();
+        }
+    }
+
+    public void OnReplyToMoveOrder()
+    {
+        waitingForAnAgentToMove = false;
+    }
+
+    private void EmitMoveOrder(Agent recipient)
+    {
+        if (true || nbMoveOrderToAgents[recipient.id] <= maxMoveOrdersTogAgent )
+        {
+            Message moveOrder = new MoveOrder(this, recipient);
+            mailBox.post(moveOrder);
+            nbMoveOrderToAgents[recipient.id]++;
+        }
+        waitingForAnAgentToMove = true;
+    }
+
+    private void EmitMoveOrder(Vector2Int posRecipient)
+    {
+        Agent recipient = board.IsCellOccupied(posRecipient);
+        if (recipient != null)
+        {
+            EmitMoveOrder(recipient);
+        }
     }
 
     //private Dictionary<Vector2Int,int> CalculateValueOfPossibleMoves(Vector2Int[] possibleMoves)
@@ -178,7 +245,7 @@ public class Agent : MonoBehaviour
         }
         else
         {
-
+            if (waitingForAnAgentToMove) return;
             //if (this.actualPos != this.desiredPos)
             //{
             //    BasicMoveTowardsDesiredPosition();

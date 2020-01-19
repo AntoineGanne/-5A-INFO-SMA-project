@@ -28,7 +28,6 @@
  * THE SOFTWARE.
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -80,21 +79,7 @@ public class Board : MonoBehaviour
         Vector3 targetPosition = grid.CellToWorld(Geometry.Cell2DTo3D(destinationCell));
         if (destinationCell != movingAgent.actualPos)
         {
-            if (destinationCell == movingAgent.desiredPos)
-            {
-                int x = destinationCell.x;
-                int y = destinationCell.y;
-                Color color = (x + y) % 2 == 0 ? Color.cyan : Color.green;
-                tiles[x, y].GetComponent<Renderer>().material.color = color;
-            }
-            if (movingAgent.actualPos == movingAgent.desiredPos)
-            {
-                int x = movingAgent.actualPos.x;
-                int y = movingAgent.actualPos.y;
-                Color color = (x + y) % 2 == 0 ? Color.white : Color.black;
-                tiles[x,y].GetComponent<Renderer>().material.color = color;
-            }
-
+            ChangeColorOfTile(destinationCell, movingAgent);
 
             if (occupedTiles[destinationCell.x, destinationCell.y] != null)
             {
@@ -106,6 +91,8 @@ public class Board : MonoBehaviour
         
         return targetPosition;
     }
+
+   
 
     // return cells adjacent to agent and not obstructed by an other agent
     public List<Vector2Int> PossibleMovesOfAgent(Agent agent)
@@ -193,6 +180,14 @@ public class Board : MonoBehaviour
     {
         Vector2Int pos = agent.actualPos;
         occupedTiles[pos.x, pos.y] = agent;
+        if (agent.actualPos == agent.desiredPos)
+        {
+            int x = agent.actualPos.x;
+            int y = agent.actualPos.y;
+            Color color = new Color(0, 0.9f,0);
+            if ((x + y) % 2 == 0) color.b += 0.3f;
+            tiles[x, y].GetComponent<Renderer>().material.color = color;
+        }
     } 
 
     public void greenlightTilesOfCorrectlyPlacedAgents()
@@ -210,12 +205,31 @@ public class Board : MonoBehaviour
         }
     }
 
-    
+    // change color of tiles (based on the position of the agent) after each movement
+    void ChangeColorOfTile(Vector2Int destinationCell, Agent movingAgent)
+    {
+        if (destinationCell == movingAgent.desiredPos)
+        {
+            int x = destinationCell.x;
+            int y = destinationCell.y;
+            Color color = new Color(0,0,0.9f);
+            if ((x + y) % 2 == 0) color.b += 0.3f;
+            tiles[x, y].GetComponent<Renderer>().material.color = color;
+        }
+        if (movingAgent.actualPos == movingAgent.desiredPos)
+        {
+            int x = movingAgent.actualPos.x;
+            int y = movingAgent.actualPos.y;
+            Color color = (x + y) % 2 == 0 ? Color.white : Color.black;
+           
+            tiles[x, y].GetComponent<Renderer>().material.color = color;
+        }
+    }
 
     //public Dictionary<Vector2Int,int> updateValueOfPossibleMoves(Agent agent, Dictionary<Vector2Int, int> valueOfPossibleMoves)
     //{
 
     //}
 
-    
+
 }

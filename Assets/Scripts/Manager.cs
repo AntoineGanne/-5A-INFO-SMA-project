@@ -21,21 +21,29 @@ public class Manager : MonoBehaviour
     public Agent[] agents;
     public int nbAgents=3;
 
+    public bool generateNewGameOnEnd=false;
+
     void Start()
+    {
+        Initialise();
+    }
+
+    private void Initialise()
     {
         mailBox = new MailBox(nbAgents);
         availableFreeCells = new ArrayList(board.size * board.size);
         availableDestinationCells = new ArrayList(board.size * board.size);
-        for(int x = 0; x < board.size; ++x)
+        for (int x = 0; x < board.size; ++x)
         {
-            for(int y = 0; y < board.size; ++y)
+            for (int y = 0; y < board.size; ++y)
             {
-                int cellIndex = x*board.size + y;
+                int cellIndex = x * board.size + y;
                 availableFreeCells.Add(cellIndex);
                 availableDestinationCells.Add(cellIndex);
             }
         }
         InitialSetup();
+        InvokeRepeating("CheckIfPuzzleIsSolved", 1.0f, 1.0f);
     }
 
     private GameObject GetRandomGameObject()
@@ -105,6 +113,32 @@ public class Manager : MonoBehaviour
             Debug.Log("error: getting null value from arraylist avalaibleFreeCell");
             return new Vector2Int(0, 0);
         }
+    }
+
+    private void CheckIfPuzzleIsSolved()
+    {
+        int nbOfAgentCorrectlyPlaced = 0;
+        foreach (Agent agent in agents)
+        {
+            if (agent.actualPos == agent.desiredPos) nbOfAgentCorrectlyPlaced++;
+        }
+        if (nbOfAgentCorrectlyPlaced == nbAgents)
+        {
+            Debug.Log("Puzzle is solved!");
+            if (generateNewGameOnEnd)
+            {
+                Initialise();
+            }
+        }
+    }
+
+    private void OnEndOfPuzzle()
+    {
+        foreach(Agent agent in agents)
+        {
+            Destroy(agent.gameObject);
+        }
+
     }
 
 }

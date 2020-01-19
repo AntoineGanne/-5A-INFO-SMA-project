@@ -34,6 +34,7 @@ public class MailBox
         foreach(Message message in messages)
         {
             agentsOrderingAMove.Add(message.emitter);
+
         }
 
         if (messages.Count >= 1)

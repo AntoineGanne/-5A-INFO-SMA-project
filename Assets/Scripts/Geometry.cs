@@ -28,6 +28,7 @@
  * THE SOFTWARE.
  */
 
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -93,7 +94,23 @@ public class Geometry
         }
         return closestCell;
     }
-    
+
+    static public List<Vector2Int> CloserCellsToGoalCell(Vector2Int[] poolOfCells, Vector2Int goalCell, Vector2Int actualPos)
+    {
+        List<Vector2Int> result = new List<Vector2Int>();
+        int actualDistance = DistanceBetweenCells(actualPos, goalCell);
+        for (int i = 0; i < poolOfCells.Length; i++)
+        {
+            Vector2Int cell = poolOfCells[i];
+            int distance = DistanceBetweenCells(cell, goalCell);
+            if (distance <= actualDistance)
+            {
+                result.Add(cell);
+            }
+        }
+        return result;
+    }
+
 
     static public int DistanceBetweenCells(Vector2Int cellA, Vector2Int cellB)
     {
