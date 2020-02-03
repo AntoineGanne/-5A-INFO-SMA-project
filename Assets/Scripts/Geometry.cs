@@ -81,11 +81,11 @@ public class Geometry
     static public Vector2Int ClosestCellToGoalCell(Vector2Int[] poolOfCells, Vector2Int goalCell)
     {
         Vector2Int closestCell = poolOfCells[0];
-        int closestDistance = DistanceBetweenCells(closestCell, goalCell);
+        float closestDistance = DistanceBetweenCells(closestCell, goalCell);
         for(int i = 1; i < poolOfCells.Length; i++)
         {
             Vector2Int cell = poolOfCells[i];
-            int distance = DistanceBetweenCells(cell, goalCell);
+            float distance = DistanceBetweenCells(cell, goalCell);
             if(distance<closestDistance)
             {
                 closestCell = cell;
@@ -98,12 +98,12 @@ public class Geometry
     static public List<Vector2Int> CloserCellsToGoalCell(Vector2Int[] poolOfCells, Vector2Int goalCell, Vector2Int actualPos)
     {
         List<Vector2Int> result = new List<Vector2Int>();
-        int actualDistance = DistanceBetweenCells(actualPos, goalCell);
+        float actualDistance = DistanceBetweenCells(actualPos, goalCell);
         for (int i = 0; i < poolOfCells.Length; i++)
         {
             Vector2Int cell = poolOfCells[i];
-            int distance = DistanceBetweenCells(cell, goalCell);
-            if (distance <= actualDistance+1)
+            float distance = DistanceBetweenCells(cell, goalCell);
+            if (distance <= actualDistance)
             {
                 result.Add(cell);
             }
@@ -112,11 +112,11 @@ public class Geometry
     }
 
 
-    static public int DistanceBetweenCells(Vector2Int cellA, Vector2Int cellB)
+    static public float DistanceBetweenCells(Vector2Int cellA, Vector2Int cellB)
     {
         Vector2Int difference = cellA - cellB;
         //return Mathf.Abs(difference.x) + Mathf.Abs(difference.y);
-        return difference.x*difference.x + difference.y*difference.y;
+        return Mathf.Sqrt((difference.x * difference.x) + (difference.y * difference.y));
     }
 }
 

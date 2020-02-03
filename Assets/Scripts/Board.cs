@@ -164,12 +164,13 @@ public class Board : MonoBehaviour
         return occupedTiles[cell.x, cell.y];
     }
 
-    public Agent GetAnAdjacentAgent(Agent agent)
+    // return an adjacent agent that isn't on agentsToIgnore
+    public Agent GetAnAdjacentAgent(Agent agent, List<Agent> agentsToIgnore)
     {
         List<Vector2Int> adjacentCells =AdjacentCells(agent.actualPos);
         foreach(Vector2Int cell in adjacentCells)
         {
-            if (occupedTiles[cell.x, cell.y] != null)
+            if (occupedTiles[cell.x, cell.y] != null && !agentsToIgnore.Contains(occupedTiles[cell.x, cell.y]))
             {
                 return occupedTiles[cell.x, cell.y];
             }

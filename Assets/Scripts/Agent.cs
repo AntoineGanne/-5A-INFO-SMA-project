@@ -125,7 +125,7 @@ public class Agent : MonoBehaviour
             poolOfMoves.Remove(actualPos);
             if (poolOfMoves.Count == 0) // no adjacent cell to move to
             {
-                Agent adjacentAgent = board.GetAnAdjacentAgent(this);
+                Agent adjacentAgent = board.GetAnAdjacentAgent(this, agentsOrderingToMove);
                 if (adjacentAgent != null)
                 {
                     EmitMoveOrder(adjacentAgent);
@@ -140,6 +140,14 @@ public class Agent : MonoBehaviour
             return;
         }
 
+        if (Random.Range(0.0f, 1.0f) > 0.8 && poolOfMoves.Count>0)
+        {
+            int rdmIndex = Random.Range(0, poolOfMoves.Count);
+            Move(poolOfMoves[rdmIndex]);
+            SignalToAgentsWhoOrderedMeToMove(agentsOrderingToMove);
+            return;
+        }
+
         poolOfMoves = board.AdjacentCells(actualPos);
         foreach(Agent otherAgent in agentsOrderingToMove)
         {
@@ -149,26 +157,31 @@ public class Agent : MonoBehaviour
         {
             poolOfMoves.Remove(actualPos);
         }
-        if (poolOfMoves.Count == 0) return;
+        // si entouré d'agent ordonnant un déplacement: ne rien faire
+        if (poolOfMoves.Count == 0)
+        {
+            Debug.Log("entouré d'agents ordonnat un déplacement");
+            return;
+        }
+
         //Vector2Int selectedMove = Geometry.ClosestCellToGoalCell(poolOfMoves.ToArray(), desiredPos);
         List<Vector2Int> goodEnoughMoves = Geometry.CloserCellsToGoalCell(poolOfMoves.ToArray(), desiredPos, this.actualPos);
-        Vector2Int freeCell= new Vector2Int(0,0);
-        bool haveFoundFreeCell = false;
+        List<Vector2Int> freeCells = new List<Vector2Int>();
         foreach(Vector2Int move in goodEnoughMoves)
         {
-            if (!board.IsCellOccupied(move))
+            if (move != actualPos && board.IsCellOccupied(move)==null)
             {
-                freeCell = move;
-                haveFoundFreeCell = true;
-                break;
+                freeCells.Add(move);
             }
         }
         
         
-        if (haveFoundFreeCell)
+        if (freeCells.Count>0)
         {
+            int rdmIndex = Random.Range(0, freeCells.Count);
+            Vector2Int freeCell = Geometry.ClosestCellToGoalCell(freeCells.ToArray(), desiredPos);
             if (freeCell == actualPos) return;
-            Move(freeCell);
+            Move(freeCells[rdmIndex]);
             SignalToAgentsWhoOrderedMeToMove(agentsOrderingToMove);
         }
         else
@@ -176,18 +189,18 @@ public class Agent : MonoBehaviour
             if (goodEnoughMoves.Count == 0)
             {
                 Debug.Log("What");
-                List<Vector2Int> poolOfMoves2 = board.AdjacentCells(actualPos);
-                Vector2Int rdmCell = poolOfMoves2[Random.Range(0, poolOfMoves.Count)];
-                if (board.IsCellOccupied(rdmCell)) EmitMoveOrder(rdmCell);
-                else {
-                    Move(rdmCell);
-                    SignalToAgentsWhoOrderedMeToMove(agentsOrderingToMove);
-                }
+                //List<Vector2Int> poolOfMoves2 = board.AdjacentCells(actualPos);
+                //Vector2Int rdmCell = poolOfMoves2[Random.Range(0, poolOfMoves.Count)];
+                //if (board.IsCellOccupied(rdmCell)) EmitMoveOrder(rdmCell);
+                //else {
+                //    Move(rdmCell);
+                //    SignalToAgentsWhoOrderedMeToMove(agentsOrderingToMove);
+                //}
                 return;
             }
             Vector2Int aGoodEnoughMove = goodEnoughMoves[Random.Range(0, goodEnoughMoves.Count)];
             Agent possibleObstructingAgent = board.IsCellOccupied(aGoodEnoughMove);
-            if (possibleObstructingAgent != null)
+            if (possibleObstructingAgent != null && possibleObstructingAgent != this) 
             {
                 EmitMoveOrder(possibleObstructingAgent);
             }
